@@ -1,8 +1,8 @@
 import mongoose from "mongoose";
-import { z } from "zod";
 
 const courseSchema = new mongoose.Schema({
-  name: z.string(),
-  price: z.number(),
+  name: String,
+  price: Number,
 });
-export const CourseModel = mongoose.model("Course", courseSchema);
+
+export const courseModel = mongoose.model("Course", courseSchema);

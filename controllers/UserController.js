@@ -1,5 +1,6 @@
-import jwt from "jsonwebtoken";
+import bcrypt from "bcrypt";
 import { UserModel } from "../dbSchema/Schema/Users.js";
+
 import { createToken } from "../middleware/createToken.js";
 import { userZodSchema } from "../zodSchema/user-zod-schema.js";
 
@@ -16,40 +17,42 @@ export const signUp = async (req, res) => {
 
   const user = await UserModel.findOne({ username: username });
 
-  console.log(user);
-
   if (user) {
     res.status(403).send("Such user already exists");
     return;
   }
   try {
+    const hashedPassword = await bcrypt.hash(password, 10);
     const User = await UserModel.create({
       username: username,
-      password: password,
+      password: hashedPassword,
       email: email,
       isAdmin: isAdmin,
     });
     const payload = { id: User._id, isAdmin: User.isAdmin };
     const token = createToken(payload);
     return res.status(200).json({ username: username, userToken: token });
-
-    res.status(200).json(User);
   } catch (error) {
     res.status(400).json({ Errors: error });
   }
 };
 
+export const login = async (req, res) => {
+  try {
+    const { username, password } = req.body;
+    const user = await UserModel.findOne({ username });
+    if (!user) {
+      return res.status(401).json({ error: "authentication failed" });
+    }
 
-export const login=async(req,res)=>{
+    const passwordMatch = bcrypt.compare(password, user.password);
+    if (!passwordMatch) {
+      return res.status(403).send("authentication failed");
+    }
+    console.log(user);
 
-  jwt.verify(req.token,process.env.JWT_SECRET,(err,authorizedData)=>{
-    
-  })
-
-  
-
-
-
-
-
-}
+    res
+      .status(200)
+      .json({ message: `user ${user.username} logged in successfully ` });
+  } catch (error) {}
+};

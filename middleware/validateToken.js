@@ -1,14 +1,17 @@
-export const validateToken = (req, res, next) => {
-  const header = req.headers["authorization"];
+import jwt from "jsonwebtoken";
+export function validateToken(req, res, next) {
+  const authHeader = req.headers["authorization"];
+  const token = authHeader && authHeader.split(" ")[1];
 
-  if (typeof header !== "undefined") {
-    const bearer = header.split(" ");
-    const token = bearer[1];
+  if (token == null) return res.sendStatus(401);
 
-    req.token = token;
+  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+    console.log(err);
+
+    if (err) return res.sendStatus(403).json({ message: "Invalid user" });
+
+    req.user = user;
+
     next();
-  } else {
-    //If header is undefined return Forbidden (403)
-    res.sendStatus(403).send("wrong header information");
-  }
-};
+  });
+}

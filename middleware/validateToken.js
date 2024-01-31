@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken";
+
 export function validateToken(req, res, next) {
   const authHeader = req.headers["authorization"];
   const token = authHeader && authHeader.split(" ")[1];
@@ -8,7 +9,7 @@ export function validateToken(req, res, next) {
   jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
     console.log(err);
 
-    if (err) return res.sendStatus(403).json({ message: "Invalid user" });
+    if (err) return res.status(403).json({ message: "Invalid user" });
 
     req.user = user;
 
